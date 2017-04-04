@@ -122,14 +122,6 @@ const unregister = ( opts, srf ) => {
           if( 200 !== res.status) {
             console.log(`Error registering ${res.status}`);
           } else if (200 == res.status) {
-            console.log(res.headers);
-            var expiresPosition = res.headers.contact.search("expires=");
-            var headerLength = res.headers.contact.length;
-            var expires = res.headers.contact.substring(expiresPosition+8, headerLength);
-            //callback(opts, srf, expires);
-
-            // wrapping the callback in setInterval allows the user to stay registered
-            // based on the expires header in the 200 OK response from the registrar
             clearInterval();
           }
       }) ;
