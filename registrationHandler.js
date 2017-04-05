@@ -62,10 +62,6 @@ register(opts, srf, (opts, srf, expires) => {
   });
 });
 
-//unregister after 10 minutes
-setTimeout(unregister(opts, srf), 600000);
-
-
 const register = ( opts, srf, callback ) => {
   srf.request(`sip:${opts.user}@${opts.domain}`, {
       method: 'REGISTER',
@@ -94,7 +90,12 @@ const register = ( opts, srf, callback ) => {
 
             // wrapping the callback in setInterval allows the user to stay registered
             // based on the expires header in the 200 OK response from the registrar
-            setInterval(() => { callback( opts, srf, expires); }, expires*1000, opts, srf, expires);
+            var reregister = setInterval(() => { callback( opts, srf, expires); }, expires*1000, opts, srf, expires);
+
+            // setting a timeout to run the unregister function
+            // unregister as the register callback interval as an argument
+            // so it can clearInterval when unregister is called
+            setTimeout(() => { unregister(opts, srf, reregister) }, 135000, opts, srf);
           }
       }) ;
   }) ;
@@ -102,7 +103,8 @@ const register = ( opts, srf, callback ) => {
 
 // still need to test how to clear the setInterval that is in the callback of
 // register function
-const unregister = ( opts, srf ) => {
+const unregister = ( opts, srf, reregister ) => {
+  console.log(`unregistering`);
   srf.request(`sip:${opts.user}@${opts.domain}`, {
       method: 'REGISTER',
       headers: {
@@ -122,7 +124,8 @@ const unregister = ( opts, srf ) => {
           if( 200 !== res.status) {
             console.log(`Error registering ${res.status}`);
           } else if (200 == res.status) {
-            clearInterval();
+            // clear the reregister interval to stop future re-REGISTER requests
+            clearInterval(reregister);
           }
       }) ;
   }) ;
