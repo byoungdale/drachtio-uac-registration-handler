@@ -2,9 +2,7 @@
 
 const drachtio = require('drachtio') ;
 const app = drachtio() ;
-const Mrf = require('drachtio-fsmrf') ;
 const Srf = require('drachtio-srf') ;
-const mrf = new Mrf(app) ;
 const srf = new Srf(app) ;
 const debug = app.debug = require('debug')('drachtio-sample') ;
 
@@ -16,36 +14,14 @@ const opts = {
   callednumber: 15555555555,
 }
 
-const mediaServers = [] ;
-
-const MediaResources = {
-
-  addMediaServer: function(ms) {
-    mediaServers.push( ms ) ;
-  },
-
-  getMediaServer: function() {
-    return mediaServers[0] ;
-  }
-} ;
-
 const drachtioConnectOpts = { host: 'localhost', port: 8022, secret: 'cymru'} ;
-const mediaserverConnectOpts = { address: '127.0.0.1', port: 8021, secret: 'ClueCon', listenPort: 8085 } ;
 
 srf.connect(drachtioConnectOpts) ;
-mrf.connect(mediaserverConnectOpts) ;
 
 srf.on('connect', (err, hostport) => {
   console.log('connected to drachtio listening for SIP on %s', hostport) ;
 }) ;
 
-mrf.on('connect', (ms) => {
-  console.log('connected to media server listening on %s:%s', ms.sipAddress, ms.sipPort) ;
-  addMediaServer( ms ) ;
-}) ;
-
-// registerUser function's callback receives expires variable
-// from the 200 OK back from the registrar
 register(opts, srf, (opts, srf, expires) => {
   console.log(`re-registering`);
   srf.request(`sip:${opts.user}@${opts.domain}`, {
@@ -101,8 +77,6 @@ const register = ( opts, srf, callback ) => {
   }) ;
 } // register
 
-// still need to test how to clear the setInterval that is in the callback of
-// register function
 const unregister = ( opts, srf, reregister ) => {
   console.log(`unregistering`);
   srf.request(`sip:${opts.user}@${opts.domain}`, {
